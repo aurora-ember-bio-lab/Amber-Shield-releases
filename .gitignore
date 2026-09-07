@@ -1,0 +1,15 @@
+/target
+**/*.sled
+**/*.sqlite
+**/*.sqlite-journal
+node_modules
+.DS_Store
+
+# Never commit license payloads or signing material.
+license.json
+*.license.json
+*.pfx
+*.p12
+.env
+.env.*
+!.env.example
