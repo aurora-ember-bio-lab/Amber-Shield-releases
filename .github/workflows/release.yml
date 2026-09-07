@@ -1,0 +1,108 @@
+name: Release
+
+# Builds real, native installers on native runners - a Windows .exe/.msi
+# needs Windows' own NSIS/WiX bundler, a macOS .dmg needs macOS's own
+# codesign/hdiutil. Cross-compiling those from Linux (which is all a cloud
+# dev sandbox has) doesn't reliably work for a webview-based GUI app, so
+# this is the actual place the release binaries come from - not a local
+# build.
+#
+# Push a tag like v0.1.0 to trigger it, or run it manually from the
+# Actions tab (workflow_dispatch).
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux system dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev \
+            patchelf build-essential curl wget file libssl-dev libgtk-3-dev
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0" --locked
+
+      - name: Build release bundle
+        run: cargo tauri build --target ${{ matrix.target }}
+
+      # tauri.conf.json's bundle.targets is "all", which resolves per-OS to
+      # whatever that platform's native bundler produces (deb/rpm/AppImage
+      # on Linux, nsis/msi on Windows, dmg/app on macOS) - so this glob is
+      # deliberately broad rather than hardcoding one extension per OS.
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: amber-shield-${{ matrix.target }}
+          path: |
+            target/${{ matrix.target }}/release/bundle/**/*.deb
+            target/${{ matrix.target }}/release/bundle/**/*.rpm
+            target/${{ matrix.target }}/release/bundle/**/*.AppImage
+            target/${{ matrix.target }}/release/bundle/**/*.exe
+            target/${{ matrix.target }}/release/bundle/**/*.msi
+            target/${{ matrix.target }}/release/bundle/**/*.dmg
+          if-no-files-found: error
+
+  publish-release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      # Publishes to the separate public "-releases" repo rather than this
+      # (source) repo, so the source stays private while installers are
+      # publicly downloadable - see docs/RELEASE.md for the one-time setup
+      # this needs (a PAT with repo scope on the release repo, added here
+      # as the RELEASE_REPO_TOKEN secret). Runs even if that secret isn't
+      # set yet - see docs/RELEASE.md's fallback note - so a first tag push
+      # doesn't just silently fail this job with no explanation.
+      - name: Publish GitHub Release
+        if: ${{ !!secrets.RELEASE_REPO_TOKEN }}
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: cargounetcom/Amber-Shield-releases
+          token: ${{ secrets.RELEASE_REPO_TOKEN }}
+          tag_name: ${{ github.ref_name }}
+          name: Amber Shield ${{ github.ref_name }}
+          files: dist/**/*
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+
+      - name: RELEASE_REPO_TOKEN not set - skipping publish
+        if: ${{ !secrets.RELEASE_REPO_TOKEN }}
+        run: |
+          echo "::warning::RELEASE_REPO_TOKEN secret is not set - built artifacts are attached to this workflow run (see the 'amber-shield-*' artifacts above) but were NOT published as a GitHub Release. See docs/RELEASE.md."
