@@ -32,7 +32,7 @@ struct GitleaksFinding {
 }
 
 pub fn run_gitleaks(repo_path: &Path) -> Result<Vec<SecretFinding>> {
-    let bin = locate("gitleaks", "ATLAS_GITLEAKS_BIN")?;
+    let bin = locate("gitleaks", "AMBER_GITLEAKS_BIN")?;
 
     // `--no-git`: scan the working tree as plain files rather than git
     // history. Found the hard way (running scan_cli against this very

@@ -3,7 +3,7 @@
 Amber Shield Lite calls the following tools as external processes (`std::process::Command`,
 see `crates/core-engine/src/security/`). They are **not vendored/bundled** in this
 repo - the code shells out to whatever copy is on `PATH` (or at an
-`ATLAS_*_BIN` override). If a future build bundles the actual binaries, copy
+`AMBER_*_BIN` override). If a future build bundles the actual binaries, copy
 each project's `LICENSE`/`NOTICE` file into this document verbatim and verify
 the bundled binary's checksum on every update (see the operational note in
 `crates/core-engine/src/security/mod.rs` - a tampered scanner binary would

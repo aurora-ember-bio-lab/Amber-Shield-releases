@@ -57,7 +57,7 @@ struct TrivyVuln {
 }
 
 pub fn run_trivy(project_path: &Path) -> Result<Vec<Vulnerability>> {
-    let bin = locate("trivy", "ATLAS_TRIVY_BIN")?;
+    let bin = locate("trivy", "AMBER_TRIVY_BIN")?;
 
     let output = Command::new(bin)
         .args(["fs", "--format", "json", "--quiet"])

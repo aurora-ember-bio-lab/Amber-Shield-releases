@@ -46,12 +46,12 @@ impl Default for OllamaClient {
 
 /// A small, CPU-viable default per the architecture review: most
 /// enterprise laptops don't have a GPU that makes a 7B+ model feel
-/// instant next to a live HUD. `ATLAS_OLLAMA_MODEL` lets an install
+/// instant next to a live HUD. `AMBER_OLLAMA_MODEL` lets an install
 /// override this once it knows what hardware it's actually running on
 /// (see the doc note in `hwid.rs` about the same
 /// detect-then-choose pattern).
 fn default_model() -> String {
-    std::env::var("ATLAS_OLLAMA_MODEL").unwrap_or_else(|_| "llama3.2:1b".to_string())
+    std::env::var("AMBER_OLLAMA_MODEL").unwrap_or_else(|_| "llama3.2:1b".to_string())
 }
 
 impl OllamaClient {
@@ -120,7 +120,7 @@ struct OllamaResponse {
 
 fn build_prompt(event: &Event) -> String {
     format!(
-        "You are Atlas AI, a terse on-call assistant embedded in a security/observability HUD.\n\
+        "You are Amber AI, a terse on-call assistant embedded in a security/observability HUD.\n\
          An event just fired:\n\
          source: {:?}\n\
          severity: {:?}\n\
