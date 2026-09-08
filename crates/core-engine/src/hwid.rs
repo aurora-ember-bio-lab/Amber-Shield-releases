@@ -86,18 +86,75 @@ fn platform_machine_id() -> Option<String> {
         .map(|s| s.to_string())
 }
 
+// `wmic csproduct get UUID` used to be the obvious way to read this, but
+// Microsoft has been retiring the tool: it is disabled by default in
+// Windows 11 23H2 and 24H2, removed on upgrade to 25H2, and slated to
+// disappear entirely - not even available as a Feature on Demand - in the
+// following feature update. Shelling out to it now fails on most current
+// machines, and since `fingerprint()` is what licensing is built on, that
+// failure took activation down with it. So: ask WMI through PowerShell,
+// which is Microsoft's own recommended replacement, and keep the registry
+// as a fallback.
 #[cfg(target_os = "windows")]
 fn platform_machine_id() -> Option<String> {
+    smbios_uuid().or_else(machine_guid)
+}
+
+/// Preferred source: the SMBIOS/firmware UUID via WMI - the same value the
+/// old `wmic` call returned, so fingerprints do not shift under existing
+/// installs. Survives an OS reinstall; changes if the board is replaced,
+/// which is the honest tradeoff behind the word "hardware-bound".
+#[cfg(target_os = "windows")]
+fn smbios_uuid() -> Option<String> {
+    use std::os::windows::process::CommandExt;
     use std::process::Command;
-    let output = Command::new("wmic")
-        .args(["csproduct", "get", "UUID"])
+
+    // Keep a console window from flashing up when the GUI app calls this.
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+    let output = Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-Command",
+            "(Get-CimInstance -ClassName Win32_ComputerSystemProduct).UUID",
+        ])
+        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .ok()?;
-    let text = String::from_utf8_lossy(&output.stdout);
-    text.lines()
-        .map(|l| l.trim())
-        .find(|l| !l.is_empty() && !l.eq_ignore_ascii_case("UUID"))
-        .map(|s| s.to_string())
+
+    let uuid = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    is_usable_smbios_uuid(&uuid).then_some(uuid)
+}
+
+/// Fallback: the OS install's MachineGuid. Always present and needs no
+/// subprocess, but it rotates on an OS reinstall - which is why it is
+/// second choice rather than first.
+#[cfg(target_os = "windows")]
+fn machine_guid() -> Option<String> {
+    use winreg::enums::HKEY_LOCAL_MACHINE;
+    use winreg::RegKey;
+
+    let guid: String = RegKey::predef(HKEY_LOCAL_MACHINE)
+        .open_subkey(r"SOFTWARE\Microsoft\Cryptography")
+        .ok()?
+        .get_value("MachineGuid")
+        .ok()?;
+
+    let guid = guid.trim().to_string();
+    (!guid.is_empty()).then_some(guid)
+}
+
+/// Some firmware reports a placeholder instead of a real SMBIOS UUID - all
+/// zeroes, or all Fs. Those are worse than useless as a fingerprint, since
+/// every machine of that model reports the identical value, so treat them
+/// as absent and let the caller fall through to the registry.
+#[cfg_attr(not(windows), allow(dead_code))]
+fn is_usable_smbios_uuid(uuid: &str) -> bool {
+    let hex: String = uuid.chars().filter(|c| c.is_ascii_hexdigit()).collect();
+    hex.len() == 32
+        && !hex.chars().all(|c| c == '0')
+        && !hex.chars().all(|c| c.eq_ignore_ascii_case(&'f'))
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
@@ -171,6 +228,19 @@ mod tests {
             (Err(_), Err(_)) => {}
             _ => panic!("fingerprint() was non-deterministic across two calls"),
         }
+    }
+
+    #[test]
+    fn rejects_placeholder_smbios_uuids() {
+        // A real Dell/Lenovo-style SMBIOS UUID.
+        assert!(is_usable_smbios_uuid("4C4C4544-0037-3810-8051-B4C04F573833"));
+        // Firmware placeholders seen in the wild - identical on every unit.
+        assert!(!is_usable_smbios_uuid("00000000-0000-0000-0000-000000000000"));
+        assert!(!is_usable_smbios_uuid("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"));
+        assert!(!is_usable_smbios_uuid("ffffffff-ffff-ffff-ffff-ffffffffffff"));
+        // Nothing at all, or PowerShell erroring out to stdout.
+        assert!(!is_usable_smbios_uuid(""));
+        assert!(!is_usable_smbios_uuid("not-a-uuid"));
     }
 
     #[test]
