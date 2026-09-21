@@ -24,8 +24,11 @@ pub enum EventSource {
     LogWatch,
     Security,
     CodeMap,
+    /// Database query monitor (paid-tier feature, not in open-source edition).
     DbMonitor,
+    /// Process behavior monitor (paid-tier feature, not in open-source edition).
     Behavior,
+    /// License activation / deactivation events (paid-tier feature, not in open-source edition).
     License,
 }
 

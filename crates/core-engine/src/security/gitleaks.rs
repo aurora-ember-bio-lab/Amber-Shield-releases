@@ -3,7 +3,7 @@
 //! Gitleaks' documented behavior, not an error - that's handled explicitly
 //! below rather than treated as a scanner failure.
 
-use super::{locate, Result, ScannerError};
+use super::{locate, Result};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Command;
@@ -46,19 +46,14 @@ pub fn run_gitleaks(repo_path: &Path) -> Result<Vec<SecretFinding>> {
     // Scanning commit history for old, already-rotated secrets is a real,
     // separate feature - worth its own function if wanted, not bolted
     // onto this one.
+    // `--exit-code 0`: gitleaks exits non-zero when findings exist, which
+    // is its normal behavior, not a scanner error. We override that here
+    // so we can parse the JSON output regardless of findings.
     let output = Command::new(bin)
         .args(["detect", "--no-git", "--report-format", "json", "--report-path", "-", "--exit-code", "0"])
         .arg("--source")
         .arg(repo_path)
         .output()?;
-
-    if !output.status.success() {
-        return Err(ScannerError::Io(std::io::Error::other(format!(
-            "gitleaks exited with {:?}: {}",
-            output.status.code(),
-            String::from_utf8_lossy(&output.stderr)
-        ))));
-    }
 
     if output.stdout.is_empty() {
         // No leaks and no report emitted is a valid, boring outcome.

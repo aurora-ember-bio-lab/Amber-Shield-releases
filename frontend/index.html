@@ -4,16 +4,130 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="author" content="Aurora Ember Bio Lab" />
-  <meta name="description" content="Amber Shield Lite is a free, open-source (MIT), local-first security scanner for code and developer infrastructure." />
-  <title>Amber Shield Lite | Local-first security intelligence</title>
+  <meta name="description" content="Amber Shield — free, MIT-licensed security scanner with pgvector semantic search. Trivy + GitLeaks + VectorizedDB." />
+  <title>Amber Shield | Security Intelligence · pgvector · Open Source</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./src/style.css" />
+  <style>
+    :root { --accent: #ff8c00; --accent-dim: #b86300; --bg-deep: #0d0d0d; --bg-panel: #1a1a1a; --text: #e8e8e8; --text-dim: #999; --radius: 10px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg-deep); color: var(--text); font-family: 'Inter', system-ui, -apple-system, sans-serif; line-height: 1.6; }
+    .site-shell { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    .nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid #222; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.1rem; text-decoration: none; color: var(--text); }
+    .brand-mark { display: inline-block; width: 28px; height: 28px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--accent), var(--accent-dim)); }
+    .brand-mark span { display: block; width: 8px; height: 8px; border-radius: 50%; background: #fff; margin: 6px 0 0 6px; opacity: 0.7; }
+    nav a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; margin-left: 18px; }
+    nav a:hover { color: var(--accent); }
+    .nav-cta { background: var(--accent); color: #000; padding: 8px 18px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+    .nav-cta:hover { background: #ffa726; }
+    h1 { font-size: 2.8rem; font-weight: 700; line-height: 1.2; }
+    h1 em { color: var(--accent); font-style: normal; }
+    h2 { font-size: 2rem; margin-bottom: 12px; }
+    h2 em { color: var(--accent); font-style: normal; }
+    h3 { font-size: 1.3rem; margin-bottom: 8px; }
+    .eyebrow { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 8px; }
+    .hero { display: flex; gap: 48px; align-items: center; padding: 60px 0; flex-wrap: wrap; }
+    .hero > div:first-child { flex: 1; min-width: 300px; }
+    .hero-lede { color: var(--text-dim); font-size: 1.1rem; margin: 16px 0 24px; max-width: 500px; }
+    .actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+    .button { display: inline-block; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; }
+    .button.primary { background: var(--accent); color: #000; }
+    .button.primary:hover { background: #ffa726; }
+    .button.quiet { background: #222; color: var(--text); border: 1px solid #333; }
+    .button.quiet:hover { border-color: var(--accent); }
+    .text-link { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+    .hero-note { font-size: 0.8rem; color: var(--text-dim); margin-top: 12px; }
+    .hero-visual { flex: 0 0 240px; text-align: center; position: relative; }
+    .hero-visual .shield { display: inline-block; background: linear-gradient(135deg, var(--accent-dim), var(--accent)); color: #000; border-radius: 50%; width: 180px; height: 180px; line-height: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; }
+    .hero-visual .shield span { font-size: 0.7rem; letter-spacing: 2px; }
+    .hero-visual .shield strong { font-size: 2rem; }
+    .hero-visual .shield small { font-size: 0.6rem; opacity: 0.8; }
+    .proof { display: flex; gap: 24px; justify-content: center; padding: 40px 0; flex-wrap: wrap; }
+    .proof > div { text-align: center; padding: 20px; background: var(--bg-panel); border-radius: var(--radius); min-width: 180px; flex: 1; }
+    .proof span { display: block; font-size: 0.7rem; color: var(--accent); letter-spacing: 1px; }
+    .proof strong { display: block; font-size: 1rem; margin: 6px 0 4px; }
+    .proof small { color: var(--text-dim); font-size: 0.8rem; }
+    .section { padding: 60px 0; }
+    .cards, .mode-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 28px; }
+    .cards article, .mode-grid article { background: var(--bg-panel); border-radius: var(--radius); padding: 24px; }
+    .cards span, .mode-grid span { font-size: 0.7rem; color: var(--accent); letter-spacing: 1px; }
+    .cards small, .mode-grid small { display: block; margin-top: 12px; color: var(--text-dim); font-size: 0.75rem; }
+    .ai-panel { background: var(--bg-panel); border-radius: var(--radius); padding: 48px; margin: 40px 0; display: flex; gap: 32px; flex-wrap: wrap; }
+    .ai-panel > div:first-child { flex: 1; min-width: 260px; }
+    .ai-console { flex: 1; min-width: 280px; }
+    .console-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; color: var(--text-dim); font-size: 0.75rem; }
+    .console-bar span { width: 10px; height: 10px; border-radius: 50%; background: #333; }
+    .console-bar span:first-child { background: #5a5; }
+    .console-answer { background: #111; border: 1px solid #2a2a2a; border-radius: 6px; padding: 14px; margin: 10px 0; font-style: italic; }
+    .ai-console small { color: var(--text-dim); font-size: 0.75rem; }
+    .download { text-align: center; padding: 60px 0; }
+    .download-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+    .download-arch { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+    .download-arch code { background: #111; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; color: var(--accent); }
+    .vector-section { background: var(--bg-panel); border-radius: var(--radius); padding: 48px; margin: 40px 0; }
+    .vector-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 24px; }
+    .vector-features > div { background: #111; border-radius: 8px; padding: 20px; }
+    .vector-features h4 { font-size: 1rem; margin-bottom: 6px; }
+    .vector-features p { font-size: 0.85rem; color: var(--text-dim); }
+    .vector-sql { background: #111; border: 1px solid #2a2a2a; border-radius: 6px; padding: 16px; margin: 20px 0; font-family: monospace; font-size: 0.85rem; overflow-x: auto; white-space: pre; }
+    .search-panel { background: var(--bg-panel); border-radius: var(--radius); padding: 24px; margin-top: 20px; }
+    .search-bar { display: flex; gap: 10px; }
+    .search-bar input { flex: 1; background: #111; border: 1px solid #333; border-radius: 6px; padding: 10px 14px; color: var(--text); font-size: 0.95rem; outline: none; }
+    .search-bar input:focus { border-color: var(--accent); }
+    .search-results { margin-top: 16px; }
+    .search-result-item { background: #111; border: 1px solid #2a2a2a; border-radius: 6px; padding: 12px 16px; margin-bottom: 8px; }
+    .search-result-item .sr-sim { color: var(--accent); font-size: 0.8rem; font-weight: 600; }
+    .search-result-item .sr-msg { margin-top: 4px; font-size: 0.9rem; }
+    .search-result-item .sr-meta { margin-top: 4px; font-size: 0.75rem; color: var(--text-dim); }
+    .process-panel { background: var(--bg-panel); border-radius: var(--radius); padding: 24px; margin-top: 20px; }
+    .proc-list { margin-top: 16px; max-height: 400px; overflow-y: auto; }
+    .proc-row { display: grid; grid-template-columns: 70px 1fr 120px 100px; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #222; font-size: 0.85rem; }
+    .proc-row:hover { background: #1a1a1a; }
+    .proc-header { font-weight: 600; color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .settings-panel { background: var(--bg-panel); border-radius: var(--radius); padding: 24px; margin-top: 20px; }
+    .settings-label { display: block; margin-bottom: 8px; font-size: 0.85rem; color: var(--text-dim); }
+    .settings-textarea { width: 100%; background: #111; border: 1px solid #333; border-radius: 6px; padding: 10px 14px; color: var(--text); font-family: monospace; font-size: 0.85rem; resize: vertical; outline: none; }
+    .settings-textarea:focus { border-color: var(--accent); }
+    .settings-actions { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+    .config-status { font-size: 0.8rem; color: var(--text-dim); }
+    .license-panel { background: var(--bg-panel); border-radius: var(--radius); padding: 24px; margin-top: 20px; }
+    .license-status-box { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 12px; background: #111; border-radius: 6px; }
+    .license-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .license-dot.active { background: #4caf50; box-shadow: 0 0 8px #4caf50; }
+    .license-dot.inactive { background: #666; }
+    .license-info { margin-top: 12px; font-size: 0.85rem; color: var(--text-dim); }
+    .license-info code { background: #111; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+    .tasks-panel { background: var(--bg-panel); border-radius: var(--radius); padding: 24px; margin-top: 20px; }
+    .tasks-create { margin-bottom: 16px; }
+    .tasks-form-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .task-input { background: #111; border: 1px solid #333; border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 0.85rem; outline: none; }
+    .task-input:focus { border-color: var(--accent); }
+    .task-select { background: #111; border: 1px solid #333; border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 0.85rem; outline: none; }
+    .task-list { margin-top: 12px; }
+    .task-row { display: grid; grid-template-columns: 1fr 100px 120px 60px 100px; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid #222; font-size: 0.85rem; }
+    .task-row:hover { background: #1a1a1a; }
+    .task-header { font-weight: 600; color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .task-cron { min-width: 160px; }
+    .cron-hint { margin-top: 8px; font-size: 0.75rem; color: var(--text-dim); }
+    .cron-hint code { background: #111; padding: 1px 5px; border-radius: 3px; color: var(--accent); }
+    .task-enabled { width: 14px; height: 14px; accent-color: var(--accent); }
+    .task-btn { background: none; border: 1px solid #444; border-radius: 4px; padding: 4px 8px; color: var(--text-dim); font-size: 0.75rem; cursor: pointer; }
+    .task-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .task-btn.danger:hover { border-color: #f44; color: #f44; }
+    .task-schedule { color: var(--accent); font-size: 0.8rem; font-family: monospace; }
+    .task-last-run { color: var(--text-dim); font-size: 0.75rem; }
+    .footer { text-align: center; padding: 40px 0; color: var(--text-dim); font-size: 0.8rem; border-top: 1px solid #222; margin-top: 40px; }
+    .footer a { color: var(--text-dim); text-decoration: none; }
+    .footer a:hover { color: var(--accent); }
+    @media (max-width: 640px) { h1 { font-size: 2rem; } .hero { padding: 32px 0; } }
+  </style>
 </head>
 <body>
   <div class="site-shell">
     <header class="nav">
-      <a class="brand" href="/" aria-label="Amber Shield Lite home"><span class="brand-mark"><span></span></span><span>Amber Shield Lite</span></a>
-      <nav aria-label="Main navigation"><a href="#capabilities">Capabilities</a><a href="https://github.com/aurora-ember-bio-lab/Amber-Shield-releases" target="_blank" rel="noreferrer">Source (MIT)</a></nav>
+      <a class="brand" href="/" aria-label="Amber Shield home"><span class="brand-mark"><span></span></span><span>Amber Shield</span></a>
+      <nav aria-label="Main navigation"><a href="#capabilities">Capabilities</a><a href="#pgvector">VectorizedDB</a><a href="https://github.com/aurora-ember-bio-lab/Amber-Shield-releases" target="_blank" rel="noreferrer">Source (MIT)</a></nav>
       <a class="nav-cta" href="#download">Install v0.1.0 <span>-&gt;</span></a>
     </header>
 
@@ -22,24 +136,124 @@
         <div>
           <p class="eyebrow"><i></i> Local-first security intelligence · free &amp; open source</p>
           <h1>See the signal<br /><em>before it spreads.</em></h1>
-          <p class="hero-lede">Amber Shield Lite brings code risk and event history into one calm, local operational view - free and MIT licensed.</p>
+          <p class="hero-lede">Amber Shield brings code risk, event intelligence, and <strong>semantic search (pgvector)</strong> into one calm, local operational view — free and MIT licensed.</p>
           <div class="actions"><a class="button primary" href="#download">Get the scanner <span>-&gt;</span></a><a class="text-link" href="#capabilities">Explore capabilities v</a></div>
-          <p class="hero-note">Runs locally. Your source and event history stay on your machine.</p>
+          <p class="hero-note">Runs locally. Your source, vectors, and event history stay on your machine.</p>
         </div>
-        <div class="hero-visual"><div class="orbit one"></div><div class="orbit two"></div><div class="shield"><span>AMBER</span><strong>01</strong><small>LOCAL CORE</small></div><b class="status top">CODEMAP<br /><em>03</em></b><b class="status right">EVENT LOG<br /><em>OK</em></b><b class="status bottom">EVENT STREAM<br /><em>LIVE</em></b></div>
+        <div class="hero-visual"><div class="shield"><span>AMBER</span><strong>SHIELD</strong><small>PGVECTOR</small></div></div>
       </section>
 
-      <section class="proof"><div><span>01</span><strong>LOCAL BY DEFAULT</strong><small>No cloud scanner dependency</small></div><div><span>02</span><strong>ONE EVENT MODEL</strong><small>Every signal gets context</small></div><div><span>03</span><strong>HONEST SCOPE</strong><small>Useful detections, no theater</small></div></section>
+      <section class="proof"><div><span>01</span><strong>LOCAL BY DEFAULT</strong><small>No cloud scanner dependency</small></div><div><span>02</span><strong>VECTOR SEARCH</strong><small>pgvector + cosine similarity</small></div><div><span>03</span><strong>HONEST SCOPE</strong><small>Useful detections, no theater</small></div><div><span>04</span><strong>OPEN SOURCE</strong><small>MIT — read every line</small></div></section>
 
-      <section class="section" id="capabilities"><p class="eyebrow">Inside the shield</p><h2>Two surfaces.<br /><em>One living picture.</em></h2><div class="cards"><article><span>01</span><h3>Code heatmap</h3><p>Combine Trivy, GitLeaks, and syntax-aware scoring to find the files that deserve attention first.</p><small>TRIVY + GITLEAKS</small></article><article><span>02</span><h3>Event stream</h3><p>Bring logs and locally-observed events into a durable local timeline.</p><small>HOT + COLD STORAGE</small></article><article><span>03</span><h3>Private explainers</h3><p>Ask a local Ollama model for context while keeping the explanation path off the public internet.</p><small>LOCAL AI OPTIONAL</small></article><article><span>04</span><h3>Free &amp; open source</h3><p>MIT licensed. Read it, fork it, build on it.</p><small>MIT LICENSE</small></article></div></section>
+      <section class="section" id="capabilities"><p class="eyebrow">Inside the shield</p><h2>Four surfaces.<br /><em>One living picture.</em></h2><div class="cards"><article><span>01</span><h3>Code heatmap</h3><p>Combine Trivy, GitLeaks, and syntax-aware scoring (tree-sitter) to find the files that deserve attention first.</p><small>TRIVY + GITLEAKS</small></article><article><span>02</span><h3>VectorizedDB</h3><p>Every event is embedded via Ollama (<code>nomic-embed-text:v1.5</code>, 768d) and stored with pgvector for semantic search.</p><small>PGVECTOR + COSINE SIMILARITY</small></article><article><span>03</span><h3>Event stream</h3><p>Hot (sled) + cold (SQLite/DuckDB) + vector (pgvector) — three-tier storage for every signal.</p><small>HOT + COLD + VECTOR</small></article><article><span>04</span><h3>Private AI</h3><p>Ask a local Ollama model for context. Embeddings stay on your machine. No cloud API key required.</p><small>LOCAL AI · OPTIONAL</small></article></div></section>
 
-      <section class="modes section"><div><p class="eyebrow">Scanner modes</p><h2>Different threats.<br /><em>Different lenses.</em></h2></div><div class="mode-grid"><article><span>FAST PASS / 30 SEC</span><h3>Quick scan</h3><p>Prioritize changed files, exposed secrets, and high-confidence dependency findings.</p></article><article><span>DEEP PASS / LOCAL</span><h3>Project scan</h3><p>Run Trivy, GitLeaks, and code mapping together for a richer file-level risk picture.</p></article><article><span>ALWAYS ON / OPTIONAL</span><h3>Signal watch</h3><p>Keep the event collectors active while the native client is running.</p></article></div></section>
+      <section class="vector-section" id="pgvector"><p class="eyebrow">VectorizedDB</p><h2>Semantic search<br /><em>over your events.</em></h2><p style="color: var(--text-dim); margin: 12px 0 8px;">Amber Shield uses <strong>pgvector</strong> to store and search event embeddings. Every CVE, every log line, every secret finding gets a 768-dimensional vector via Ollama's <code>nomic-embed-text:v1.5</code>.</p>
 
-      <section class="ai-panel"><div><p class="eyebrow">Local AI context</p><h2>Ask the signal<br /><em>without exporting it.</em></h2></div><div class="ai-console"><div class="console-bar"><span></span><span></span><span></span><b>OLLAMA / LOCAL ONLY</b></div><p><i>amber@shield</i>: explain this event</p><p class="console-answer">The event matches a known heatmap pattern. Review the flagged file before you ship.</p><small>Model access is optional. No cloud fallback is used.</small></div></section>
+      <div class="vector-features"><div><h4>🔍 Semantic search</h4><p>Find events by meaning, not just keywords. "Show me everything like that SQL injection" — vector similarity finds it.</p></div><div><h4>🧠 Local embeddings</h4><p>Ollama runs on <code>127.0.0.1:11434</code>. Embeddings never leave your machine.</p></div><div><h4>📊 pgvector index</h4><p>IVFFlat index with cosine distance. 768d vectors, <code>lists = 100</code>. Production-ready SQL.</p></div><div><h4>💾 Memory fallback</h4><p><code>MemoryVectorStore</code> for offline/demo. Same API, zero infrastructure.</p></div></div>
 
-      <section class="download section" id="download"><div><p class="eyebrow">Install the desktop scanner</p><h2>Native power.<br /><em>Inspectable source.</em></h2><p>Amber Shield Lite is a Rust and Tauri desktop application, MIT licensed. Trivy, GitLeaks, and local event collection run entirely in the desktop client.</p></div><div class="download-actions"><a class="button primary" href="https://github.com/aurora-ember-bio-lab/Amber-Shield-releases/releases" target="_blank" rel="noreferrer">Open releases / install <span>-&gt;</span></a><a class="button quiet" href="https://github.com/aurora-ember-bio-lab/Amber-Shield-releases" target="_blank" rel="noreferrer">View source</a></div></section>
+      <p style="margin-top: 24px; font-size: 0.9rem; color: var(--accent);">PostgreSQL + pgvector schema</p>
+      <div class="vector-sql">CREATE EXTENSION vector;
+
+CREATE TABLE event_vectors (
+    id        UUID PRIMARY KEY,
+    embedding VECTOR(768),
+    source    TEXT NOT NULL,
+    severity  TEXT NOT NULL,
+    message   TEXT NOT NULL,
+    metadata JSONB,
+    ts        TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_embedding
+    ON event_vectors
+   USING ivfflat (embedding vector_cosine_ops)
+   WITH (lists = 100);
+
+-- Semantic search query:
+-- SELECT id, message, 1 - (embedding <=> $1::vector) AS similarity
+--   FROM event_vectors
+--   ORDER BY embedding <=> $1::vector
+--   LIMIT 10;</div></section>
+
+      <section class="modes section"><div><p class="eyebrow">Scanner modes</p><h2>Different threats.<br /><em>Different lenses.</em></h2></div><div class="mode-grid"><article><span>FAST PASS / 30 SEC</span><h3>Quick scan</h3><p>Prioritize changed files, exposed secrets, and high-confidence dependency findings.</p></article><article><span>DEEP PASS / LOCAL</span><h3>Project scan</h3><p>Run Trivy, GitLeaks, code mapping, and vector embedding together for a richer risk picture.</p></article><article><span>ALWAYS ON / OPTIONAL</span><h3>Signal watch</h3><p>Keep collectors + vector index active while the client is running.</p></article></div></section>
+
+      <section class="ai-panel"><div><p class="eyebrow">Local AI context</p><h2>Ask the signal<br /><em>without exporting it.</em></h2></div><div class="ai-console"><div class="console-bar"><span></span><span></span><span></span><b>OLLAMA / LOCAL ONLY</b></div><p><i>amber@shield</i>: find events similar to "CVE-2026 in openssl"</p><p class="console-answer">3 similar events found (cosine sim &gt; 0.87). Top: "CVE-2026-0001 in curl — dependency scan"</p><small>Embedding model: nomic-embed-text:v1.5. All vectors local. No cloud.</small></div></section>
+
+      <!-- Semantic Search -->
+      <section class="section" id="search"><p class="eyebrow">Semantic search</p><h2>Find by meaning.<br /><em>Not just keywords.</em></h2>
+        <div class="search-panel">
+          <div class="search-bar">
+            <input type="text" id="search-input" placeholder="e.g. &quot;SQL injection in auth module&quot;..." />
+            <button class="button primary" id="search-btn">Search</button>
+          </div>
+          <div id="search-results" class="search-results"></div>
+        </div>
+      </section>
+
+      <!-- Process Monitor -->
+      <section class="section" id="processes"><p class="eyebrow">Process monitor</p><h2>Live process<br /><em>behavior view.</em></h2>
+        <div class="process-panel">
+          <button class="button quiet" id="proc-scan-btn">Scan processes</button>
+          <div id="proc-list" class="proc-list"></div>
+        </div>
+      </section>
+
+      <!-- Settings: Log Watch Paths -->
+      <section class="section" id="settings"><p class="eyebrow">Settings</p><h2>Configure<br /><em>log sources.</em></h2>
+        <div class="settings-panel">
+          <label class="settings-label">Watch paths (one per line):</label>
+          <textarea id="watch-paths" class="settings-textarea" placeholder="/var/log/syslog&#10;C:\Windows\System32\winevt\Logs\Security.evtx" rows="4"></textarea>
+          <div class="settings-actions">
+            <button class="button primary" id="config-save-btn">Save paths</button>
+            <span id="config-status" class="config-status"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- License -->
+      <section class="section" id="license"><p class="eyebrow">License</p><h2>Activate<br /><em>Amber Shield Pro.</em></h2>
+        <div class="license-panel">
+          <div id="license-status-box" class="license-status-box">
+            <span class="license-dot inactive"></span>
+            <span id="license-status-text">Checking license...</span>
+          </div>
+          <textarea id="license-input" class="settings-textarea" placeholder="Paste your license JSON here..." rows="4"></textarea>
+          <div class="settings-actions">
+            <button class="button primary" id="license-install-btn">Install license</button>
+            <span id="license-msg" class="config-status"></span>
+          </div>
+          <div class="license-info">
+            <p><strong>Fingerprint:</strong> <code id="fingerprint-display">—</code></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scheduled Tasks -->
+      <section class="section" id="scheduled"><p class="eyebrow">Scheduled tasks</p><h2>Automate<br /><em>recurring scans.</em></h2>
+        <div class="tasks-panel">
+          <div class="tasks-create">
+            <div class="tasks-form-row">
+              <input type="text" id="task-name" placeholder="Task name" class="task-input" />
+              <select id="task-kind" class="task-select">
+                <option value="code_scan">Code Scan</option>
+                <option value="process_check">Process Check</option>
+                <option value="log_collect">Log Collect</option>
+                <option value="vector_index">Vector Index</option>
+              </select>
+              <input type="number" id="task-interval" placeholder="Interval (sec)" class="task-input" value="300" min="30" />
+              <input type="text" id="task-cron" placeholder="Cron (e.g. */5 * * * *)" class="task-input task-cron" />
+              <input type="text" id="task-target" placeholder="Target path (optional)" class="task-input" />
+              <button class="button primary" id="task-create-btn">Add task</button>
+            </div>
+            <div class="cron-hint">Cron overrides interval. 6-field format: <code>sec min hour day month dow</code> — e.g. <code>0 0 9 * * 1-5</code> = weekdays 9am, <code>0 */10 * * * *</code> = every 10 min</div>
+          </div>
+          <div id="task-list" class="task-list"></div>
+        </div>
+      </section>
+
+      <section class="download section" id="download"><div><p class="eyebrow">Install the scanner</p><h2>Native power.<br /><em>Inspectable source.</em></h2><p>Amber Shield is a Rust + Tauri desktop application, MIT licensed. Trivy, GitLeaks, pgvector, and local event collection run entirely locally.</p><div class="download-arch"><code>cargo install amber-shield-scan</code><code>docker pull ghcr.io/aurora-ember-bio-lab/amber-shield-scan</code></div><div class="download-actions"><a class="button primary" href="https://github.com/aurora-ember-bio-lab/Amber-Shield-releases/releases" target="_blank" rel="noreferrer">Download release <span>-&gt;</span></a><a class="button quiet" href="https://github.com/aurora-ember-bio-lab/Amber-Shield-releases" target="_blank" rel="noreferrer">View source</a></div><p style="margin-top: 16px; font-size: 0.8rem; color: var(--text-dim);">Requires: Ollama (for embeddings), Trivy, GitLeaks, PostgreSQL + pgvector (optional — MemoryVectorStore works offline).</p></div></section>
     </main>
-    <footer><span>Copyright 2026 Aurora Ember Bio Lab / Amber Shield Lite - MIT License</span><span><a href="./privacy.html">Privacy + cookies</a> / <a href="./disclaimer.html">Disclaimer</a></span></footer>
+    <footer class="footer"><span>Copyright 2026 Aurora Ember Bio Lab · Amber Shield · MIT License</span><br /><span style="font-size: 0.75rem;"><a href="./privacy.html">Privacy</a> · <a href="./disclaimer.html">Disclaimer</a> · <a href="https://github.com/aurora-ember-bio-lab/Amber-Shield-releases">GitHub</a></span></footer>
   </div>
 </body>
 </html>

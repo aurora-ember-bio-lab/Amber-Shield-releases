@@ -17,8 +17,7 @@ pub enum HotStoreError {
 
 pub type Result<T> = std::result::Result<T, HotStoreError>;
 
-/// A node in the live process-behavior graph. See [`crate::behavior`] for
-/// how these get populated and scored.
+/// A node in the live process-behavior graph.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProcessNode {
     pub pid: u32,

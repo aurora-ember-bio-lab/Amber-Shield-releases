@@ -29,8 +29,10 @@ pub mod codemap;
 pub mod hwid;
 pub mod llm;
 pub mod logwatch;
+pub mod scheduler;
 pub mod security;
 pub mod storage;
 pub mod types;
+pub mod vectorized;
 
 pub use types::{Event, EventSource, Severity};
