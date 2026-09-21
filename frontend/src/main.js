@@ -288,68 +288,175 @@ function setupDemoSettings() {
 }
 
 // -----------------------------------------------------------------------
-// License Flow (Tauri mode)
+// Authorization / License (Tauri mode)
 // -----------------------------------------------------------------------
 function setupLicense(tauri) {
-  const statusText = document.getElementById("license-status-text");
-  const statusDot = document.querySelector(".license-dot");
-  const input = document.getElementById("license-input");
-  const installBtn = document.getElementById("license-install-btn");
-  const msg = document.getElementById("license-msg");
-  const fpDisplay = document.getElementById("fingerprint-display");
+  const activeCard = document.getElementById("auth-active-card");
+  const formCard = document.getElementById("auth-form-card");
+  const seatIdEl = document.getElementById("auth-seat-id");
+  const expiresEl = document.getElementById("auth-expires");
+  const fpActive = document.getElementById("auth-fingerprint-active");
+  const fpForm = document.getElementById("auth-fingerprint-form");
+  const keyInput = document.getElementById("auth-key");
+  const activateBtn = document.getElementById("auth-activate-btn");
+  const rawJson = document.getElementById("auth-raw-json");
+  const rawActivateBtn = document.getElementById("auth-raw-activate-btn");
+  const msgEl = document.getElementById("auth-msg");
+  const deactivateBtn = document.getElementById("auth-deactivate-btn");
+  const copyFpBtn = document.getElementById("auth-copy-fp");
 
-  // Check license status + fingerprint
+  function showMsg(text, type) {
+    msgEl.textContent = text;
+    msgEl.className = "auth-msg " + type;
+  }
+
+  function clearMsg() {
+    msgEl.className = "auth-msg";
+    msgEl.textContent = "";
+  }
+
+  function formatDate(unix) {
+    if (!unix) return "—";
+    return new Date(unix * 1000).toLocaleDateString("en-US", {
+      year: "numeric", month: "short", day: "numeric"
+    });
+  }
+
   async function refreshLicense() {
+    clearMsg();
     try {
       const status = await tauri.core.invoke("license_status");
       if (status.active) {
-        statusDot.className = "license-dot active";
-        statusText.textContent = `Active — seat: ${status.seat_id || "—"}`;
+        activeCard.style.display = "block";
+        formCard.style.display = "none";
+        seatIdEl.textContent = status.seat_id || "—";
+        expiresEl.textContent = formatDate(status.expires_at_unix);
       } else {
-        statusDot.className = "license-dot inactive";
-        statusText.textContent = status.error || "No license installed";
+        activeCard.style.display = "none";
+        formCard.style.display = "block";
       }
     } catch (e) {
-      statusDot.className = "license-dot inactive";
-      statusText.textContent = `Error: ${e}`;
+      activeCard.style.display = "none";
+      formCard.style.display = "block";
     }
   }
 
-  try {
-    tauri.core.invoke("hardware_fingerprint").then((fp) => {
-      fpDisplay.textContent = fp;
-    }).catch(() => { fpDisplay.textContent = "unavailable"; });
-  } catch (_) {}
+  // Load fingerprint
+  tauri.core.invoke("hardware_fingerprint").then((fp) => {
+    if (fpActive) fpActive.textContent = fp;
+    if (fpForm) fpForm.textContent = fp;
+  }).catch(() => {
+    if (fpActive) fpActive.textContent = "unavailable";
+    if (fpForm) fpForm.textContent = "unavailable";
+  });
 
-  refreshLicense();
+  // Copy fingerprint
+  if (copyFpBtn) {
+    copyFpBtn.addEventListener("click", () => {
+      const fp = fpForm?.textContent || "";
+      navigator.clipboard.writeText(fp).then(() => {
+        copyFpBtn.textContent = "Copied!";
+        setTimeout(() => { copyFpBtn.textContent = "Copy"; }, 1500);
+      });
+    });
+  }
 
-  installBtn.addEventListener("click", async () => {
-    const json = input.value.trim();
-    if (!json) { msg.textContent = "paste license JSON first"; msg.style.color = "#f44"; return; }
-    msg.textContent = "installing...";
-    msg.style.color = "var(--text-dim)";
+  // Activate from key
+  activateBtn.addEventListener("click", async () => {
+    const key = keyInput.value.trim();
+    if (!key) {
+      showMsg("Enter your activation key", "error");
+      return;
+    }
+
+    // Check if it's raw JSON or a key format
+    let licenseJson = key;
+    if (!key.startsWith("{")) {
+      // Treat as a key — wrap it in a minimal JSON structure for validation
+      // In production this would call a license server; here we validate locally
+      showMsg("Validating key...", "info");
+      try {
+        // Try invoking with the key directly — the backend will handle it
+        const result = await tauri.core.invoke("install_license", { licenseJson: key });
+        if (result.active) {
+          showMsg("License activated successfully!", "success");
+          keyInput.value = "";
+          refreshLicense();
+          return;
+        }
+        showMsg(result.error || "Invalid activation key", "error");
+        return;
+      } catch (e) {
+        // If it fails, it might be a formatted key that needs JSON wrapping
+      }
+    }
+
+    // Try as raw JSON
+    showMsg("Installing license...", "info");
+    try {
+      const result = await tauri.core.invoke("install_license", { licenseJson: licenseJson });
+      if (result.active) {
+        showMsg("License activated successfully!", "success");
+        keyInput.value = "";
+        rawJson.value = "";
+        refreshLicense();
+      } else {
+        showMsg(result.error || "Activation failed", "error");
+      }
+    } catch (e) {
+      showMsg(`Error: ${e}`, "error");
+    }
+  });
+
+  // Activate from raw JSON
+  rawActivateBtn.addEventListener("click", async () => {
+    const json = rawJson.value.trim();
+    if (!json) {
+      showMsg("Paste license JSON first", "error");
+      return;
+    }
+    showMsg("Installing license...", "info");
     try {
       const result = await tauri.core.invoke("install_license", { licenseJson: json });
       if (result.active) {
-        msg.textContent = "license installed successfully";
-        msg.style.color = "#4caf50";
-        input.value = "";
+        showMsg("License activated successfully!", "success");
+        rawJson.value = "";
+        refreshLicense();
       } else {
-        msg.textContent = result.error || "installation failed";
-        msg.style.color = "#f44";
+        showMsg(result.error || "Activation failed", "error");
       }
-      refreshLicense();
     } catch (e) {
-      msg.textContent = `error: ${e}`;
-      msg.style.color = "#f44";
+      showMsg(`Error: ${e}`, "error");
     }
   });
+
+  // Deactivate
+  deactivateBtn.addEventListener("click", async () => {
+    if (!confirm("Deactivate this license?")) return;
+    try {
+      await tauri.core.invoke("deactivate_license");
+      refreshLicense();
+    } catch (e) {
+      showMsg(`Error: ${e}`, "error");
+    }
+  });
+
+  // Enter key on input
+  keyInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") activateBtn.click();
+  });
+
+  refreshLicense();
 }
 
 function setupDemoLicense() {
-  document.getElementById("license-status-text").textContent = "(demo mode — license requires Tauri)";
-  document.getElementById("license-install-btn").addEventListener("click", () => {
-    document.getElementById("license-msg").textContent = "(demo mode)";
+  document.getElementById("auth-active-card").style.display = "none";
+  document.getElementById("auth-form-card").style.display = "block";
+  document.getElementById("auth-fingerprint-form").textContent = "(demo mode)";
+  document.getElementById("auth-activate-btn").addEventListener("click", () => {
+    const msg = document.getElementById("auth-msg");
+    msg.textContent = "(demo mode — license requires Tauri)";
+    msg.className = "auth-msg info";
   });
 }
 

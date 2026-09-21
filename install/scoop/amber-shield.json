@@ -1,0 +1,24 @@
+{
+  "version": "0.1.0",
+  "architecture": {
+    "x64": {
+      "url": "https://github.com/aurora-ember-bio-lab/Amber-Shield-releases/releases/download/v0.1.0/Amber Shield Lite_0.1.0_x64-setup.exe",
+      "hash": "4C91C485375F950C15264C076E441818EC9A095C56944E8A31703A604EB698D5"
+    }
+  },
+  "bin": "amber-shield-lite.exe",
+  "checkver": {
+    "github": "https://github.com/aurora-ember-bio-lab/Amber-Shield-releases"
+  },
+  "autoupdate": {
+    "architecture": {
+      "x64": {
+        "url": "https://github.com/aurora-ember-bio-lab/Amber-Shield-releases/releases/download/v$version/Amber Shield Lite_$version_x64-setup.exe"
+      }
+    }
+  },
+  "description": "Amber Shield — local-first security intelligence with pgvector semantic search, Trivy, and GitLeaks",
+  "homepage": "https://ambershield.app",
+  "license": "MIT",
+  "depends": "7zip"
+}

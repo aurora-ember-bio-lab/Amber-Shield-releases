@@ -99,6 +99,7 @@ pub fn run() {
             commands::hardware_fingerprint,
             commands::install_license,
             commands::license_status,
+            commands::deactivate_license,
             commands::scan_code_heatmap,
             commands::llm_is_reachable,
             commands::explain_event_with_llm,

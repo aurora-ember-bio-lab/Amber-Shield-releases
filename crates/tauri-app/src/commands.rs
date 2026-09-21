@@ -99,6 +99,15 @@ pub fn license_status(app: AppHandle) -> Result<LicenseStatus, String> {
     Ok(LicenseStatus { active: true, seat_id: Some(license.claims.seat_id), expires_at_unix: Some(license.claims.expires_at_unix), error: None })
 }
 
+#[tauri::command]
+pub fn deactivate_license(app: AppHandle) -> Result<(), String> {
+    let path = license_path(&app)?;
+    if path.exists() {
+        std::fs::remove_file(&path).map_err(to_err)?;
+    }
+    Ok(())
+}
+
 /// Runs Trivy + GitLeaks against `project_path` and folds the results into
 /// a per-file heatmap. This is I/O- and CPU-bound (shells out to external
 /// processes, parses source with tree-sitter), so it's dispatched with

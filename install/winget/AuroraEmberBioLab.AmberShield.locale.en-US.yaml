@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+
+PackageIdentifier: AuroraEmberBioLab.AmberShield
+PackageVersion: 0.1.0
+PackageLocale: en-US
+Publisher: Aurora Ember Bio Lab
+PublisherUrl: https://ambershield.app
+PublisherSupportUrl: https://github.com/aurora-ember-bio-lab/Amber-Shield-releases/issues
+Author: Aurora Ember Bio Lab
+PackageName: Amber Shield
+PackageUrl: https://ambershield.app
+License: MIT
+LicenseUrl: https://github.com/aurora-ember-bio-lab/Amber-Shield-releases/blob/main/LICENSE
+ShortDescription: Local-first security intelligence with pgvector semantic search, Trivy, and GitLeaks
+Description: >
+  Amber Shield brings code risk, event intelligence, and semantic search into
+  one calm, local operational view. Runs entirely locally — your source, vectors,
+  and event history stay on your machine. MIT licensed.
+Tags:
+  - security
+  - scanner
+  - trivy
+  - gitleaks
+  - pgvector
+  - semantic-search
+  - local-first
+  - tauri
+  - rust
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

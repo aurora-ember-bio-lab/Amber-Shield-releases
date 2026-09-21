@@ -98,6 +98,38 @@
     .license-dot.inactive { background: #666; }
     .license-info { margin-top: 12px; font-size: 0.85rem; color: var(--text-dim); }
     .license-info code { background: #111; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+    .auth-panel { max-width: 600px; }
+    .auth-card { background: var(--bg-panel); border-radius: var(--radius); padding: 28px; border: 1px solid #2a2a2a; }
+    .auth-active-header, .auth-form-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .auth-status-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .auth-status-dot.active { background: #4caf50; box-shadow: 0 0 10px #4caf5080; }
+    .auth-status-dot.inactive { background: #666; border: 2px solid #444; }
+    .auth-status-label { font-weight: 600; font-size: 1.1rem; }
+    .auth-status-sub { font-size: 0.8rem; color: var(--text-dim); margin-top: 2px; }
+    .auth-details { background: #111; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+    .auth-detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 0.85rem; }
+    .auth-detail-row + .auth-detail-row { border-top: 1px solid #222; }
+    .auth-detail-row span:first-child { color: var(--text-dim); }
+    .auth-detail-row code { background: #0a0a0a; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; color: var(--accent); max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+    .auth-actions { margin-top: 16px; }
+    .auth-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+    .auth-step { display: flex; gap: 12px; align-items: flex-start; }
+    .auth-step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #000; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+    .auth-step-text strong { display: block; font-size: 0.9rem; }
+    .auth-step-text span { font-size: 0.8rem; color: var(--text-dim); }
+    .auth-key-input { display: flex; gap: 10px; margin-bottom: 12px; }
+    .auth-key-field { flex: 1; background: #0a0a0a; border: 2px solid #333; border-radius: 8px; padding: 12px 16px; color: var(--accent); font-family: 'Courier New', monospace; font-size: 1rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; outline: none; transition: border-color 0.2s; }
+    .auth-key-field::placeholder { color: #555; text-transform: none; font-weight: 400; letter-spacing: 0; }
+    .auth-key-field:focus { border-color: var(--accent); }
+    .auth-msg { font-size: 0.85rem; padding: 10px 14px; border-radius: 6px; margin-top: 8px; display: none; }
+    .auth-msg.success { display: block; background: #1a3a1a; color: #4caf50; border: 1px solid #2d5a2d; }
+    .auth-msg.error { display: block; background: #3a1a1a; color: #f44; border: 1px solid #5a2d2d; }
+    .auth-msg.info { display: block; background: #1a2a3a; color: var(--accent); border: 1px solid #2d4a5a; }
+    .auth-advanced { margin-top: 16px; }
+    .auth-advanced summary { font-size: 0.8rem; color: var(--text-dim); cursor: pointer; padding: 6px 0; }
+    .auth-advanced summary:hover { color: var(--accent); }
+    .auth-fingerprint-box { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding: 10px 14px; background: #111; border-radius: 6px; font-size: 0.8rem; color: var(--text-dim); }
+    .auth-fingerprint-box code { color: var(--accent); font-size: 0.75rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tasks-panel { background: var(--bg-panel); border-radius: var(--radius); padding: 24px; margin-top: 20px; }
     .tasks-create { margin-bottom: 16px; }
     .tasks-form-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -210,20 +242,81 @@ CREATE INDEX idx_embedding
         </div>
       </section>
 
-      <!-- License -->
-      <section class="section" id="license"><p class="eyebrow">License</p><h2>Activate<br /><em>Amber Shield Pro.</em></h2>
-        <div class="license-panel">
-          <div id="license-status-box" class="license-status-box">
-            <span class="license-dot inactive"></span>
-            <span id="license-status-text">Checking license...</span>
+      <!-- Authorization -->
+      <section class="section" id="license">
+        <p class="eyebrow">Authorization</p>
+        <h2>Activate<br /><em>your license.</em></h2>
+
+        <div class="auth-panel">
+          <!-- Status Card (shown when activated) -->
+          <div id="auth-active-card" class="auth-card auth-active" style="display:none;">
+            <div class="auth-active-header">
+              <div class="auth-status-dot active"></div>
+              <div>
+                <div class="auth-status-label">License Active</div>
+                <div class="auth-status-sub" id="auth-seat-id">—</div>
+              </div>
+            </div>
+            <div class="auth-details">
+              <div class="auth-detail-row"><span>Expires</span><span id="auth-expires">—</span></div>
+              <div class="auth-detail-row"><span>Fingerprint</span><code id="auth-fingerprint-active">—</code></div>
+            </div>
+            <div class="auth-actions">
+              <button class="button quiet" id="auth-deactivate-btn">Deactivate</button>
+            </div>
           </div>
-          <textarea id="license-input" class="settings-textarea" placeholder="Paste your license JSON here..." rows="4"></textarea>
-          <div class="settings-actions">
-            <button class="button primary" id="license-install-btn">Install license</button>
-            <span id="license-msg" class="config-status"></span>
-          </div>
-          <div class="license-info">
-            <p><strong>Fingerprint:</strong> <code id="fingerprint-display">—</code></p>
+
+          <!-- Activation Form (shown when not activated) -->
+          <div id="auth-form-card" class="auth-card auth-form">
+            <div class="auth-form-header">
+              <div class="auth-status-dot inactive"></div>
+              <div>
+                <div class="auth-status-label">No License</div>
+                <div class="auth-status-sub">Enter your activation key to unlock Amber Shield Pro</div>
+              </div>
+            </div>
+
+            <div class="auth-steps">
+              <div class="auth-step">
+                <div class="auth-step-num">1</div>
+                <div class="auth-step-text">
+                  <strong>Get your key</strong>
+                  <span>Receive an activation key from your purchase or trial</span>
+                </div>
+              </div>
+              <div class="auth-step">
+                <div class="auth-step-num">2</div>
+                <div class="auth-step-text">
+                  <strong>Enter the key</strong>
+                  <span>Paste your activation key below</span>
+                </div>
+              </div>
+              <div class="auth-step">
+                <div class="auth-step-num">3</div>
+                <div class="auth-step-text">
+                  <strong>Activate</strong>
+                  <span>Your hardware fingerprint is verified locally</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="auth-key-input">
+              <input type="text" id="auth-key" class="auth-key-field" placeholder="AS-XXXX-XXXX-XXXX-XXXX" spellcheck="false" autocomplete="off" />
+              <button class="button primary" id="auth-activate-btn">Activate</button>
+            </div>
+            <div id="auth-msg" class="auth-msg"></div>
+
+            <details class="auth-advanced">
+              <summary>Advanced: paste raw license JSON</summary>
+              <textarea id="auth-raw-json" class="settings-textarea" placeholder='{"claims":{"seat_id":"...","fingerprint":"...","expires_at_unix":...},"signature":"..."}' rows="4"></textarea>
+              <button class="button quiet" id="auth-raw-activate-btn" style="margin-top:8px;">Activate from JSON</button>
+            </details>
+
+            <div class="auth-fingerprint-box">
+              <span>Your hardware fingerprint:</span>
+              <code id="auth-fingerprint-form">—</code>
+              <button class="task-btn" id="auth-copy-fp" title="Copy fingerprint">Copy</button>
+            </div>
           </div>
         </div>
       </section>
