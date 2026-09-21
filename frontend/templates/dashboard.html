@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="author" content="Aurora Ember Bio Lab" />
+  <meta name="description" content="Amber Shield — local-first security intelligence with pgvector semantic search." />
+  <title>Amber Shield | Dashboard</title>
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../src/dashboard.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon"><span></span></div>
+        <span class="brand-text">Amber Shield</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#overview" class="nav-item active" data-section="overview">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span>Overview</span>
+        </a>
+        <a href="#events" class="nav-item" data-section="events">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>Events</span>
+        </a>
+        <a href="#search" class="nav-item" data-section="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span>Search</span>
+        </a>
+        <a href="#processes" class="nav-item" data-section="processes">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <span>Processes</span>
+        </a>
+        <a href="#scan" class="nav-item" data-section="scan">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Code Scan</span>
+        </a>
+        <a href="#tasks" class="nav-item" data-section="tasks">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Scheduler</span>
+        </a>
+        <a href="#settings" class="nav-item" data-section="settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Settings</span>
+        </a>
+        <div class="nav-divider"></div>
+        <a href="#license" class="nav-item" data-section="license">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          <span>Authorization</span>
+          <span class="nav-badge" id="license-badge">Inactive</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="status-indicator">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">Checking...</span>
+        </div>
+        <a href="https://github.com/aurora-ember-bio-lab/Amber-Shield-releases" target="_blank" class="sidebar-link">GitHub</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <button class="menu-toggle" id="menu-toggle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h1 class="page-title" id="page-title">Overview</h1>
+        <div class="topbar-actions">
+          <span class="version-badge">v0.1.0</span>
+          <div class="user-info">
+            <span class="user-avatar">AS</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Sections -->
+      <div class="content" id="content">
+
+        <!-- OVERVIEW -->
+        <section class="section active" id="section-overview">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+              <div class="stat-info"><span class="stat-label">Security Score</span><span class="stat-value" id="stat-score">—</span></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div class="stat-info"><span class="stat-label">Total Events</span><span class="stat-value" id="stat-events">0</span></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon orange"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+              <div class="stat-info"><span class="stat-label">Processes</span><span class="stat-value" id="stat-processes">—</span></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon red"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+              <div class="stat-info"><span class="stat-label">Active Tasks</span><span class="stat-value" id="stat-tasks">0</span></div>
+            </div>
+          </div>
+          <div class="card-row">
+            <div class="card flex-2">
+              <div class="card-header"><h3>Recent Events</h3><span class="card-badge live" id="event-status">Live</span></div>
+              <div class="card-body" id="overview-events">
+                <div class="empty-state">No events yet. Start a scan or wait for log events.</div>
+              </div>
+            </div>
+            <div class="card flex-1">
+              <div class="card-header"><h3>Quick Actions</h3></div>
+              <div class="card-body">
+                <button class="action-btn" onclick="navigateTo('scan')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Run Code Scan</button>
+                <button class="action-btn" onclick="navigateTo('search')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Semantic Search</button>
+                <button class="action-btn" onclick="navigateTo('processes')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>Scan Processes</button>
+                <button class="action-btn" onclick="navigateTo('tasks')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Manage Tasks</button>
+                <button class="action-btn accent" onclick="navigateTo('license')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>Activate License</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- EVENTS -->
+        <section class="section" id="section-events">
+          <div class="card">
+            <div class="card-header"><h3>Event Stream</h3><span class="card-badge live" id="event-stream-badge">Live</span></div>
+            <div class="card-body" id="event-log">
+              <div class="empty-state">Waiting for events...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEARCH -->
+        <section class="section" id="section-search">
+          <div class="card">
+            <div class="card-header"><h3>Semantic Search</h3></div>
+            <div class="card-body">
+              <div class="search-bar">
+                <input type="text" id="search-input" placeholder='e.g. "SQL injection in auth module"...' />
+                <button class="btn primary" id="search-btn">Search</button>
+              </div>
+              <div id="search-results" class="search-results"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PROCESSES -->
+        <section class="section" id="section-processes">
+          <div class="card">
+            <div class="card-header"><h3>Process Monitor</h3><button class="btn sm" id="proc-scan-btn">Scan</button></div>
+            <div class="card-body" id="proc-list">
+              <div class="empty-state">Click Scan to view running processes</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CODE SCAN -->
+        <section class="section" id="section-scan">
+          <div class="card">
+            <div class="card-header"><h3>Code Heatmap Scanner</h3></div>
+            <div class="card-body">
+              <div class="input-group">
+                <input type="text" id="scan-path" placeholder="Project path (e.g. ./src)" value="." />
+                <button class="btn primary" id="scan-btn">Scan</button>
+              </div>
+              <div id="heatmap-list" class="heatmap-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCHEDULER -->
+        <section class="section" id="section-tasks">
+          <div class="card">
+            <div class="card-header"><h3>Scheduled Tasks</h3></div>
+            <div class="card-body">
+              <div class="task-form">
+                <div class="form-row">
+                  <input type="text" id="task-name" placeholder="Task name" class="form-input" />
+                  <select id="task-kind" class="form-select">
+                    <option value="code_scan">Code Scan</option>
+                    <option value="process_check">Process Check</option>
+                    <option value="log_collect">Log Collect</option>
+                    <option value="vector_index">Vector Index</option>
+                  </select>
+                  <input type="number" id="task-interval" placeholder="Interval (sec)" class="form-input" value="300" min="30" />
+                  <input type="text" id="task-cron" placeholder="Cron (optional)" class="form-input" />
+                  <input type="text" id="task-target" placeholder="Target path" class="form-input" />
+                  <button class="btn primary" id="task-create-btn">Add</button>
+                </div>
+                <div class="form-hint">Cron: <code>sec min hour day month dow</code> — e.g. <code>0 */10 * * * *</code> = every 10 min</div>
+              </div>
+              <div id="task-list" class="task-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="section" id="section-settings">
+          <div class="card">
+            <div class="card-header"><h3>Log Watch Paths</h3></div>
+            <div class="card-body">
+              <textarea id="watch-paths" class="form-textarea" placeholder="/var/log/syslog&#10;C:\Windows\System32\winevt\Logs\Security.evtx" rows="4"></textarea>
+              <div class="form-actions">
+                <button class="btn primary" id="config-save-btn">Save paths</button>
+                <span id="config-status" class="form-status"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- LICENSE / AUTHORIZATION -->
+        <section class="section" id="section-license">
+          <div class="auth-wrapper">
+
+            <!-- Active State -->
+            <div class="auth-active-card" id="auth-active-card" style="display:none;">
+              <div class="auth-glow green"></div>
+              <div class="auth-active-content">
+                <div class="auth-active-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                </div>
+                <div class="auth-active-info">
+                  <h3>License Active</h3>
+                  <p id="auth-seat-id">—</p>
+                </div>
+                <button class="btn-outline danger" id="auth-deactivate-btn">Deactivate</button>
+              </div>
+              <div class="auth-active-details">
+                <div class="auth-detail"><span class="auth-detail-label">Expires</span><span class="auth-detail-value" id="auth-expires">—</span></div>
+                <div class="auth-detail"><span class="auth-detail-label">Fingerprint</span><code class="auth-detail-code" id="auth-fingerprint-active">—</code></div>
+              </div>
+            </div>
+
+            <!-- Activation Form -->
+            <div class="auth-card" id="auth-form-card">
+              <div class="auth-glow orange"></div>
+
+              <!-- Header -->
+              <div class="auth-header">
+                <div class="auth-icon-wrap">
+                  <div class="auth-icon-ring">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                  </div>
+                </div>
+                <h2>Activate your license</h2>
+                <p class="auth-subtitle">Enter your API key to unlock Amber Shield Pro features</p>
+              </div>
+
+              <!-- Steps -->
+              <div class="auth-steps-row">
+                <div class="auth-step-pill active"><span>1</span> Get key</div>
+                <div class="auth-step-line"></div>
+                <div class="auth-step-pill"><span>2</span> Enter</div>
+                <div class="auth-step-line"></div>
+                <div class="auth-step-pill"><span>3</span> Activate</div>
+              </div>
+
+              <!-- Key Input -->
+              <div class="auth-input-group">
+                <div class="auth-input-wrap">
+                  <svg class="auth-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                  <input type="text" id="auth-key" class="auth-key-input" placeholder="AS-XXXX-XXXX-XXXX-XXXX" spellcheck="false" autocomplete="off" />
+                  <button class="auth-paste-btn" id="auth-paste-btn" title="Paste from clipboard">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </div>
+                <button class="auth-activate-btn" id="auth-activate-btn">
+                  <span>Activate</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+              </div>
+
+              <!-- Message -->
+              <div id="auth-msg" class="auth-msg"></div>
+
+              <!-- Divider -->
+              <div class="auth-divider">
+                <span>or</span>
+              </div>
+
+              <!-- Raw JSON -->
+              <details class="auth-raw-section">
+                <summary class="auth-raw-toggle">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                  Paste raw license JSON
+                </summary>
+                <div class="auth-raw-body">
+                  <textarea id="auth-raw-json" class="auth-raw-textarea" placeholder='{"claims":{...},"signature":"..."}' rows="4"></textarea>
+                  <button class="auth-raw-btn" id="auth-raw-activate-btn">Activate from JSON</button>
+                </div>
+              </details>
+
+              <!-- Fingerprint -->
+              <div class="auth-fingerprint">
+                <div class="auth-fp-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <span class="auth-fp-label">Hardware ID</span>
+                <code class="auth-fp-value" id="auth-fingerprint-form">—</code>
+                <button class="auth-fp-copy" id="auth-copy-fp" title="Copy">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+
+              <!-- Help Links -->
+              <div class="auth-help">
+                <a href="https://ambershield.app/pricing" target="_blank">Get a license</a>
+                <span class="auth-help-sep">·</span>
+                <a href="https://github.com/aurora-ember-bio-lab/Amber-Shield-releases" target="_blank">Documentation</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- AI Drawer -->
+  <div class="ai-drawer" id="ai-drawer" hidden>
+    <div class="ai-drawer-header">
+      <h3>AI Context</h3>
+      <span id="ai-model-tag" class="ai-model-tag"></span>
+      <button class="btn sm" id="ai-drawer-close">&times;</button>
+    </div>
+    <div class="ai-drawer-body" id="ai-drawer-text"></div>
+  </div>
+
+  <script type="module" src="../src/dashboard.js"></script>
+</body>
+</html>
