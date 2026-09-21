@@ -28,9 +28,20 @@ pub struct AppState {
     pub cold_store: Arc<std::sync::Mutex<SqliteColdStore>>,
     pub vector_store: Arc<std::sync::Mutex<core_engine::vectorized::MemoryVectorStore>>,
     pub task_store: Arc<std::sync::Mutex<core_engine::scheduler::TaskStore>>,
+    pub data_dir: std::path::PathBuf,
 }
 
 const EVENT_CHANNEL: &str = "amber://event";
+
+/// Read watch paths from config.json, returning an empty vec if missing.
+fn read_watch_paths(data_dir: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let config_path = data_dir.join("config.json");
+    std::fs::read(&config_path)
+        .ok()
+        .and_then(|raw| serde_json::from_slice::<commands::AppConfig>(&raw).ok())
+        .map(|cfg| cfg.watch_paths.into_iter().map(std::path::PathBuf::from).collect())
+        .unwrap_or_default()
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -59,14 +70,25 @@ pub fn run() {
                 core_engine::scheduler::TaskStore::open(data_dir.join("tasks.json")),
             ));
 
+            // Read watch paths from config and pass to log spawner
+            let watch_paths = read_watch_paths(&data_dir);
+            tracing::info!("loaded {} watch paths from config", watch_paths.len());
+
             app.manage(AppState {
                 hot_store: hot_store.clone(),
                 cold_store: cold_store.clone(),
                 vector_store: vector_store.clone(),
                 task_store: task_store.clone(),
+                data_dir: data_dir.clone(),
             });
 
-            spawn_log_sources(app.handle().clone(), hot_store, cold_store, vector_store);
+            spawn_log_sources(
+                app.handle().clone(),
+                hot_store,
+                cold_store,
+                vector_store,
+                watch_paths,
+            );
             spawn_task_scheduler(app.handle().clone(), task_store);
 
             Ok(())
@@ -93,6 +115,7 @@ pub fn run() {
             commands::toggle_scheduled_task,
             commands::run_task_now,
             commands::mark_task_completed,
+            commands::restart_log_sources,
         ])
         .run(tauri::generate_context!())
         .expect("error while running amber-shield-lite");
@@ -101,18 +124,15 @@ pub fn run() {
 /// Spawns whatever `core_engine::logwatch::default_sources` returns for
 /// this platform (Stripe CLI if installed, the Linux file-tail source for
 /// any configured paths, etc.) and forwards their output to the HUD.
-///
-/// No paths are configured by default in this scaffold - wiring up a
-/// settings screen to let the user pick which logs to watch is the natural
-/// next step, not something to hardcode here.
 fn spawn_log_sources(
     app: tauri::AppHandle,
     hot_store: Arc<HotStore>,
     cold_store: Arc<std::sync::Mutex<SqliteColdStore>>,
     vector_store: Arc<std::sync::Mutex<core_engine::vectorized::MemoryVectorStore>>,
+    watch_paths: Vec<std::path::PathBuf>,
 ) {
-    let watch_paths: Vec<std::path::PathBuf> = Vec::new();
     let sources = core_engine::logwatch::default_sources(watch_paths);
+    tracing::info!("spawning {} log sources", sources.len());
 
     for source in sources {
         let app = app.clone();
@@ -208,14 +228,29 @@ fn spawn_task_scheduler(
 }
 
 async fn execute_task(
-    _app: &tauri::AppHandle,
+    app: &tauri::AppHandle,
     task: &core_engine::scheduler::ScheduledTask,
 ) -> Result<String, String> {
     use core_engine::scheduler::TaskKind;
     match &task.kind {
         TaskKind::ProcessCheck => {
             let procs = commands::scan_processes()?;
-            Ok(format!("scanned {} processes", procs.len()))
+            // Persist processes to hot store for the behavior graph
+            if let Some(state) = app.try_state::<AppState>() {
+                for p in &procs {
+                    use core_engine::storage::hot::ProcessNode;
+                    let node = ProcessNode {
+                        pid: p.pid,
+                        parent_pid: None,
+                        name: p.name.clone(),
+                        exe_path: p.exe_path.clone(),
+                        started_at: chrono::Utc::now(),
+                        flagged: false,
+                    };
+                    let _ = state.hot_store.upsert_process(&node);
+                }
+            }
+            Ok(format!("scanned and persisted {} processes", procs.len()))
         }
         TaskKind::CodeScan => {
             let path = task.target.as_deref().unwrap_or(".");
@@ -232,10 +267,23 @@ async fn execute_task(
                 heatmap.len(), vulns.len(), secrets.len()))
         }
         TaskKind::LogCollect => {
-            Ok("log collect triggered".into())
+            // Log sources run continuously in background; this task is a
+            // health-check that reports how many events have been collected.
+            if let Some(state) = app.try_state::<AppState>() {
+                let count = state.hot_store.recent_events(500).map(|e| e.len()).unwrap_or(0);
+                Ok(format!("log collectors running, {} events in ring buffer", count))
+            } else {
+                Ok("log collectors running (state unavailable)".into())
+            }
         }
         TaskKind::VectorIndex => {
-            Ok("vector index triggered".into())
+            // Events are auto-indexed on arrival; this reports the store size.
+            if let Some(state) = app.try_state::<AppState>() {
+                let count = state.vector_store.lock().map(|vs| vs.len()).unwrap_or(0);
+                Ok(format!("vector store contains {} indexed events", count))
+            } else {
+                Ok("vector index running (state unavailable)".into())
+            }
         }
     }
 }

@@ -370,7 +370,20 @@ pub fn run_task_now(
     match task.kind {
         TaskKind::ProcessCheck => {
             let procs = scan_processes()?;
-            Ok(format!("scanned {} processes", procs.len()))
+            // Persist processes to hot store
+            for p in &procs {
+                use core_engine::storage::hot::ProcessNode;
+                let node = ProcessNode {
+                    pid: p.pid,
+                    parent_pid: None,
+                    name: p.name.clone(),
+                    exe_path: p.exe_path.clone(),
+                    started_at: chrono::Utc::now(),
+                    flagged: false,
+                };
+                let _ = state.hot_store.upsert_process(&node);
+            }
+            Ok(format!("scanned and persisted {} processes", procs.len()))
         }
         TaskKind::CodeScan => {
             let path = task.target.as_deref().unwrap_or(".");
@@ -387,10 +400,12 @@ pub fn run_task_now(
                 heatmap.len(), vulns.len(), secrets.len()))
         }
         TaskKind::LogCollect => {
-            Ok("log collect triggered (collectors run continuously in background)".into())
+            let count = state.hot_store.recent_events(500).map(|e| e.len()).unwrap_or(0);
+            Ok(format!("log collectors running, {} events in ring buffer", count))
         }
         TaskKind::VectorIndex => {
-            Ok("vector index triggered (events auto-indexed on arrival)".into())
+            let count = state.vector_store.lock().map(|vs| vs.len()).unwrap_or(0);
+            Ok(format!("vector store contains {} indexed events", count))
         }
     }
 }
@@ -402,4 +417,13 @@ pub fn mark_task_completed(
 ) -> Result<(), String> {
     let ok = state.task_store.lock().map_err(to_err)?.mark_completed(&id);
     if ok { Ok(()) } else { Err("task not found".into()) }
+}
+
+/// Read the saved config and return the watch paths so the frontend can
+/// display them. A real restart would require respawning log sources,
+/// which is handled by re-reading config on the next app launch.
+#[tauri::command]
+pub fn restart_log_sources(app: AppHandle) -> Result<Vec<String>, String> {
+    let cfg = get_config(app)?;
+    Ok(cfg.watch_paths)
 }
